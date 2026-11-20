@@ -33,7 +33,21 @@ Güvenlik danışmanındaki uyarılar bilinçli:
 - `personel_mi()` / `yonetici_mi()` anonim rolde çalıştırılabilir olmalı: menü okuma politikaları bunları çağırır.
 - `gizli_ayar` tablosunda politika yok: kimse doğrudan okuyamasın diye.
 
+### Edge Functions
+
+- `personel-ekle`: yönetici panelden kasiyer / yönetici ekler (e-posta + geçici şifre; çağıranın yönetici olduğu
+  sunucuda denetlenir). Yüklendi.
+- `sms-gonder`: SMS sağlayıcı bilgileri gelince yüklenecek (`docs/sms.md`).
+
+### İlk yönetici hesabı
+
+Panelde personeli yönetici ekler; ilk yönetici bir kez elle açılır:
+1. Supabase → Authentication → Users → **Add user** → kendi e-postanız ve **kendi seçtiğiniz** şifre
+   ("Auto confirm" işaretli). Şifre kimseyle paylaşılmaz.
+2. Bu kullanıcıyı personel tablosuna yönetici olarak eklemek (Claude ya da SQL editörü):
+   `insert into personel (kullanici_id, ad, rol, sube_id) select id, '<Ad Soyad>', 'yonetici', (select id from subeler limit 1) from auth.users where email = '<e-posta>';`
+
 ### Bekleyenler
 
 - Telefonla giriş: SMS sağlayıcı bilgileri gelince (`docs/sms.md`).
-- İlk yönetici ve kasiyer hesapları: yönetim paneliyle birlikte.
+- Panelin yayını: GitHub → Settings → Pages → Source: **GitHub Actions** (bir kez).

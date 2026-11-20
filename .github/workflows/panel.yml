@@ -1,0 +1,33 @@
+# Kasa ve yönetim panelini GitHub Pages'e yayınlar (main'e panel/ değişikliği girince).
+# Bir kez: Ayarlar → Pages → Source: "GitHub Actions".
+name: Panel → GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths: ['panel/**', '.github/workflows/panel.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency: { group: pages, cancel-in-progress: true }
+jobs:
+  yayinla:
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: '${{ steps.dagit.outputs.page_url }}' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: panel/package-lock.json }
+      - run: npm ci
+        working-directory: panel
+      - run: npm run build
+        working-directory: panel
+        env:
+          PANEL_BASE: /butter-app/
+          VITE_SUPABASE_URL: https://amcqfkcerlvjlfzllngy.supabase.co
+          VITE_SUPABASE_KEY: sb_publishable_-VVKkinkzvf3wtd_HOurpQ_ubjuC7Tl
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: panel/dist }
+      - id: dagit
+        uses: actions/deploy-pages@v4

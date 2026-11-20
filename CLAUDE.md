@@ -10,6 +10,9 @@ Kapsam ve kararlar: `docs/kapsam.md`.
   `app/AGENTS.md`'deki Expo kurallarına uy (paket eklerken `npx expo install`).
   - `src/veri/kaynak.ts`: Supabase ayarlıysa canlı, değilse cihaz içi örnek veri (`ornekMod`, SMS kodu 123456).
   - `src/tema.ts`: marka renkleri (yeşil Pantone 350 C `#2C5234`, krem 726 C `#EDD3B5`), Jost + fiyatlarda Montserrat.
+- `panel/` — kasa ("Damga ver") ve yönetim paneli (Vite + React, HashRouter; GitHub Pages'e `.github/workflows/panel.yml`).
+  Denetim: `cd panel && npm run build`.
+- `supabase/functions/` — `personel-ekle` (yüklü), `sms-gonder` (SMS sağlayıcı bekliyor).
 - `supabase/migrations/` — şema, RLS ve kahve kartı fonksiyonları. `supabase/seed.sql` başlangıç verisi.
 - `supabase/tests/calistir.sh` — yerel PostgreSQL'de Supabase taklidiyle kural testleri.
 
