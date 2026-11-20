@@ -36,6 +36,11 @@
     "backgroundColor": "#FAF7EC",
     "experiments": {
       "typedRoutes": true
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2C5234"
     }
   }
 }

@@ -53,13 +53,16 @@ Testler: `supabase/tests/calistir.sh` (yerel PostgreSQL'de, Supabase taklidiyle;
 
 ## Yayın için gerekenler (butter tarafı)
 
-1. **Supabase projesi** (AB bölgesi, ör. Frankfurt). Kurulunca `app/.env` doldurulur, migration ve seed yüklenir.
-2. **SMS sağlayıcı** (telefonla giriş için): Supabase'in "Send SMS" kancasıyla Türkiye'de çalışan bir sağlayıcı
-   (ör. Netgsm, İleti Merkezi). Gönderici adı (başlık) başvurusu gerekir.
+1. **Supabase projesi** (AB bölgesi, Frankfurt). Kurulunca `app/.env` doldurulur, migration ve seed yüklenir.
+2. **SMS sağlayıcı** (telefonla giriş için): `docs/sms.md`.
 3. **İYS kaydı** (ticari ileti için) ve **KVKK aydınlatma metni** (adresi `app/src/ayar.ts` → `KVKK_ADRESI`).
-4. **Apple Developer** (şirket hesabı, D-U-N-S numarası) ve **Google Play** geliştirici hesabı.
-5. **İçerik:** ürün fotoğrafları, açıklamalar, alerjen ve kalori bilgileri; fiyatlar (Kerzz'den ya da panelden).
-6. **Kerzz:** yalnız ürün listesi ve fiyatları **okumak** için erişim (sipariş aktarımı gerekmiyor).
+4. **Apple / Google:** T. Baran Dinç'in kişisel geliştirici hesapları kullanılır (`docs/yayin.md`: marka yetki yazısı,
+   Google'ın 12 kişilik kapalı test şartı).
+5. **İçerik:** ürün adı, kategori ve fiyat Kerzz'den otomatik; açıklama, alerjen, kalori ve (Kerzz'de yoksa)
+   fotoğraf yönetim panelinden bir kez girilir.
+6. **Kerzz:** butter'a ait, yalnız okuma yetkili ayrı bir Kerzz kullanıcısı (Fincosto'nunkiyle karıştırılmaz).
+
+Hukuk metni taslakları: `docs/hukuk/` (avukat kontrolü gerekir). SMS kurulumu: `docs/sms.md`.
 
 ## Sonraki adımlar
 
