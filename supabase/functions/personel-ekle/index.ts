@@ -1,4 +1,5 @@
 // Yönetici, panelden personel (kasiyer / yönetici) ekler: e-postayla giriş hesabı + personel satırı.
+// islem: 'sifre_sifirla' ile personele yeni geçici şifre verir.
 // Çağıranın aktif yönetici olduğu sunucuda denetlenir. Geçici şifre yalnız yanıtta döner, saklanmaz.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -27,14 +28,26 @@ Deno.serve(async (istek) => {
   const { data: yon, error: yonHata } = await cagiran.rpc('yonetici_mi');
   if (yonHata || yon !== true) return yanit(403, { hata: 'Bu işlem için yönetici olmalısınız.' });
 
-  let g: { ad?: string; eposta?: string; rol?: string };
+  let g: { ad?: string; eposta?: string; rol?: string; islem?: string; kullanici_id?: string };
   try { g = await istek.json(); } catch { return yanit(400, { hata: 'Geçersiz istek' }); }
+
+  const yonetim = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
+  // Şifre sıfırlama: yalnız personel tablosundaki bir hesap için yeni geçici şifre
+  if (g.islem === 'sifre_sifirla') {
+    const id = String(g.kullanici_id ?? '');
+    const { data: p } = await yonetim.from('personel').select('kullanici_id').eq('kullanici_id', id).maybeSingle();
+    if (!p) return yanit(404, { hata: 'Personel bulunamadı.' });
+    const yeni = geciciSifre();
+    const { error: sHata } = await yonetim.auth.admin.updateUserById(id, { password: yeni });
+    if (sHata) return yanit(500, { hata: 'Şifre değiştirilemedi.' });
+    return yanit(200, { kullanici_id: id, gecici_sifre: yeni });
+  }
   const ad = String(g.ad ?? '').trim();
   const eposta = String(g.eposta ?? '').trim().toLowerCase();
   const rol = g.rol === 'yonetici' ? 'yonetici' : 'kasiyer';
   if (!ad || !/^\S+@\S+\.\S+$/.test(eposta)) return yanit(400, { hata: 'Ad ve geçerli bir e-posta gerekli.' });
 
-  const yonetim = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const sifre = geciciSifre();
   const { data: k, error: kHata } = await yonetim.auth.admin.createUser({ email: eposta, password: sifre, email_confirm: true, user_metadata: { ad } });
   if (kHata || !k.user) return yanit(400, { hata: kHata?.message.includes('already') ? 'Bu e-postayla bir hesap zaten var.' : 'Hesap açılamadı.' });

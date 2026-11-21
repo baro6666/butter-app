@@ -14,6 +14,8 @@ export function Personel() {
   const [rol, setRol] = useState<'kasiyer' | 'yonetici'>('kasiyer');
   const [bekliyor, setBekliyor] = useState(false);
   const [mesaj, setMesaj] = useState<{ tur: 'tamam' | 'hata'; metin: string } | null>(null);
+  const [sifreKutusu, setSifreKutusu] = useState<{ ad: string; eposta?: string; sifre: string } | null>(null);
+  const [kopyalandi, setKopyalandi] = useState(false);
 
   const ekle = async () => {
     // Neden eklenemediğini açıkça söyle (düğme pasif kalıp sessizce beklemesin)
@@ -25,9 +27,21 @@ export function Personel() {
       const r = await sb.functions.invoke('personel-ekle', { body: { ad: ad.trim(), eposta: temizEposta, rol } });
       if (r.error) throw new Error((await r.error.context?.json?.().catch(() => null))?.hata ?? r.error.message);
       const { gecici_sifre } = r.data as { gecici_sifre: string };
-      setMesaj({ tur: 'tamam', metin: `${ad.trim()} eklendi. Geçici şifre: ${gecici_sifre} — yalnız şimdi gösteriliyor; kişiye kendiniz iletin.` });
+      setKopyalandi(false);
+      setSifreKutusu({ ad: ad.trim(), eposta: temizEposta, sifre: gecici_sifre });
+      setMesaj({ tur: 'tamam', metin: `${ad.trim()} eklendi.` });
       setAd(''); setEposta(''); yenile();
     } catch (e) { setMesaj({ tur: 'hata', metin: hataMetni(e) }); } finally { setBekliyor(false); }
+  };
+  const sifreSifirla = async (p: P) => {
+    if (!confirm(`${p.ad} için yeni geçici şifre oluşturulsun mu? Eski şifresi geçersiz olur.`)) return;
+    setMesaj(null);
+    try {
+      const r = await sb.functions.invoke('personel-ekle', { body: { islem: 'sifre_sifirla', kullanici_id: p.kullanici_id } });
+      if (r.error) throw new Error((await r.error.context?.json?.().catch(() => null))?.hata ?? r.error.message);
+      setKopyalandi(false);
+      setSifreKutusu({ ad: p.ad, sifre: (r.data as { gecici_sifre: string }).gecici_sifre });
+    } catch (e) { setMesaj({ tur: 'hata', metin: hataMetni(e) }); }
   };
   const durumDegis = async (p: P) => {
     try { al(await sb.from('personel').update({ aktif: !p.aktif }).eq('kullanici_id', p.kullanici_id).select('kullanici_id')); yenile(); }
@@ -41,6 +55,18 @@ export function Personel() {
   return (
     <>
       <h1>Personel</h1>
+      {sifreKutusu ? (
+        <div className="kart" role="alertdialog" aria-label="Geçici şifre" style={{ background: 'var(--yesil)', color: 'var(--krem)', borderColor: 'var(--yesil)' }}>
+          <h2 style={{ color: 'var(--krem)' }}>{sifreKutusu.ad} için geçici şifre</h2>
+          {sifreKutusu.eposta ? <p>Giriş e-postası: <b>{sifreKutusu.eposta}</b></p> : null}
+          <div className="satir">
+            <code style={{ fontSize: 28, fontWeight: 700, letterSpacing: 2, background: 'var(--krem)', color: 'var(--yesil)', borderRadius: 12, padding: '10px 16px', userSelect: 'all' }}>{sifreKutusu.sifre}</code>
+            <button className="dugme krem" onClick={async () => { try { await navigator.clipboard.writeText(sifreKutusu.sifre); setKopyalandi(true); } catch { setKopyalandi(false); } }}>{kopyalandi ? 'Kopyalandı' : 'Kopyala'}</button>
+          </div>
+          <p style={{ color: '#C9D3BE', fontSize: 14 }}>Bu şifre yalnız şimdi gösteriliyor ve hiçbir yerde saklanmıyor. Kişiye kendiniz iletin; ilk girişte sağ üstteki “Şifre” düğmesiyle değiştirmesini isteyin. Kaybolursa “Şifre sıfırla” ile yenisi alınır.</p>
+          <button className="dugme cizgi" style={{ borderColor: 'var(--krem)', color: 'var(--krem)', alignSelf: 'flex-start' }} onClick={() => setSifreKutusu(null)}>İlettim, kapat</button>
+        </div>
+      ) : null}
       <div className="satir" style={{ alignItems: 'flex-start' }}>
         <form className="kart" style={{ flex: '1 1 340px' }} onSubmit={(e) => { e.preventDefault(); ekle(); }} noValidate>
           <h2>Personel ekle</h2>
@@ -57,7 +83,7 @@ export function Personel() {
         <div className="kart tablo-kutu" style={{ flex: '1 1 460px' }}>
           <Durum hata={hata} yukleniyor={yukleniyor && !veri} />
           <table>
-            <thead><tr><th>Ad</th><th>Rol</th><th>Durum</th></tr></thead>
+            <thead><tr><th>Ad</th><th>Rol</th><th>İşlem</th></tr></thead>
             <tbody>
               {veri?.map((p) => {
                 const kendim = p.kullanici_id === ben?.kullanici_id;
@@ -70,8 +96,12 @@ export function Personel() {
                       </select>
                     </td>
                     <td>
-                      {kendim ? <span className="rozet yesil">Aktif</span>
-                        : <button className={`dugme kucuk ${p.aktif ? 'cizgi' : ''}`} onClick={() => durumDegis(p)}>{p.aktif ? 'Pasif yap' : 'Aktif yap'}</button>}
+                      {kendim ? <span className="rozet yesil">Aktif</span> : (
+                        <span className="satir" style={{ gap: 6, flexWrap: 'nowrap' }}>
+                          <button className={`dugme kucuk ${p.aktif ? 'cizgi' : ''}`} onClick={() => durumDegis(p)}>{p.aktif ? 'Pasif yap' : 'Aktif yap'}</button>
+                          <button className="dugme kucuk cizgi" onClick={() => sifreSifirla(p)}>Şifre sıfırla</button>
+                        </span>
+                      )}
                     </td>
                   </tr>
                 );
