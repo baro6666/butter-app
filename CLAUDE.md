@@ -8,7 +8,8 @@ Kapsam ve kararlar: `docs/kapsam.md`.
 
 - `app/` — müşteri uygulaması (Expo SDK 58, Expo Router, TypeScript). Ekranlar `app/src/app/`.
   `app/AGENTS.md`'deki Expo kurallarına uy (paket eklerken `npx expo install`).
-  - `src/veri/kaynak.ts`: Supabase ayarlıysa canlı, değilse cihaz içi örnek veri (`ornekMod`, SMS kodu 123456).
+  - `src/veri/kaynak.ts`: Supabase ayarlıysa canlı, değilse cihaz içi örnek veri (`ornekMod`, e-posta kodu 123456).
+  - Giriş: Apple / Google / e-posta kodu (SMS yok); kurulum `docs/giris.md`.
   - `src/tema.ts`: marka renkleri (yeşil Pantone 350 C `#2C5234`, krem 726 C `#EDD3B5`), Jost + fiyatlarda Montserrat.
 - `panel/` — kasa ("Damga ver") ve yönetim paneli (Vite + React, HashRouter; https://butter-panel.expo.app, yayın `panel/README.md`).
   Denetim: `cd panel && npm run build`.

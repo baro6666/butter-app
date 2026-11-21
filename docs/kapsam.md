@@ -33,8 +33,8 @@ Sipariş ve ödeme, üye tabanı oluştuktan sonra ayrı bir aşama olarak değe
 - **Duyurular:** fırın, vitrin, kampanya, yeni ürün, etkinlik; okunmamış rozeti.
 - **Hesap:** favoriler, bildirim izinleri (fırın, favoriler, kampanya = İYS ticari ileti izni), çıkış, **hesabı silme**
   (App Store şartı).
-- **Giriş:** telefon + SMS kodu (şifre yok). İlk girişte ad, isteğe bağlı doğum günü, davet kodu, KVKK onayı,
-  ayrı ve isteğe bağlı ticari ileti onayı.
+- **Giriş (ücretsiz, SMS yok):** Apple, Google ya da e-postaya gelen 6 haneli kod (`docs/giris.md`). İlk girişte ad,
+  isteğe bağlı telefon (ön sipariş için) ve doğum günü, davet kodu, KVKK onayı, ayrı ve isteğe bağlı ticari ileti onayı.
 
 Menü ve duyurular giriş yapmadan görülür; kart, favori ve talepler için üyelik gerekir.
 
@@ -54,7 +54,7 @@ Testler: `supabase/tests/calistir.sh` (yerel PostgreSQL'de, Supabase taklidiyle;
 ## Yayın için gerekenler (butter tarafı)
 
 1. **Supabase projesi** (AB bölgesi, Frankfurt). Kurulunca `app/.env` doldurulur, migration ve seed yüklenir.
-2. **SMS sağlayıcı** (telefonla giriş için): `docs/sms.md`.
+2. **Giriş yöntemleri** (ücretsiz): Brevo e-posta, Google, Apple — `docs/giris.md`. SMS gerekmiyor (`docs/sms.md` ileride istenirse).
 3. **İYS kaydı** (ticari ileti için) ve **KVKK aydınlatma metni** (adresi `app/src/ayar.ts` → `KVKK_ADRESI`).
 4. **Apple / Google:** T. Baran Dinç'in kişisel geliştirici hesapları kullanılır (`docs/yayin.md`: marka yetki yazısı,
    Google'ın 12 kişilik kapalı test şartı).
