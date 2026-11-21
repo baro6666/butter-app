@@ -5,7 +5,15 @@
 - **Yönetim** (yalnız yönetici): özet, ürünler ve vitrin durumu, duyurular, ön sipariş talepleri, ziyaret puanları,
   üyeler (CSV), kahve kartı kuralı, personel (ekle / pasif yap; `supabase/functions/personel-ekle`).
 
-Adres (GitHub Pages açılınca): https://baro6666.github.io/butter-app/
+Adres: **https://butter-panel.expo.app** (Expo hosting, proje `@baro6/butter-panel`).
+
+Yeni sürüm yayınlamak:
+
+```bash
+cd panel
+npm run build
+npx eas-cli@latest deploy --prod --export-dir dist
+```
 
 ```bash
 cd panel

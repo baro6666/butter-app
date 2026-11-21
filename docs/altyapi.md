@@ -53,4 +53,7 @@ Panelde personeli yönetici ekler; ilk yönetici bir kez elle açılır:
 ### Bekleyenler
 
 - Telefonla giriş: SMS sağlayıcı bilgileri gelince (`docs/sms.md`).
-- Panelin yayını: GitHub → Settings → Pages → Source: **GitHub Actions** (bir kez).
+
+## Panel adresi
+
+https://butter-panel.expo.app (Expo hosting, proje `@baro6/butter-panel`). Yayın: `panel/README.md`.
