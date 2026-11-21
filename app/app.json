@@ -41,6 +41,23 @@
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#2C5234"
+    },
+    "owner": "baro6",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "60d98547-abbe-4037-873f-275c9198fce4"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/60d98547-abbe-4037-873f-275c9198fce4"
     }
   }
 }

@@ -29,3 +29,16 @@ Karar: uygulama, şirket değil **T. Baran Dinç'in kişisel geliştirici hesapl
 Expo EAS ile bulutta derlenir (`eas build`), TestFlight ve Google Play iç teste gönderilir (`eas submit`).
 Bunun için Expo hesabı ve mağaza API anahtarları gerekir; fincosto iOS uygulamasındaki App Store Connect anahtarı
 yeniden kullanılabilir.
+
+## Önizleme (Expo Go)
+
+Expo hesabı `baro6`, proje `@baro6/butter` (kimlik `60d98547-abbe-4037-873f-275c9198fce4`). Erişim anahtarı
+oturum ortamında gizli tutulur (koda/depoya yazılmaz). Yeni önizleme yayınlamak:
+
+```bash
+cd app
+npx eas-cli@latest update --branch onizleme --environment preview --message "<ne değişti>"
+```
+
+Telefonda: Expo Go → expo.dev'deki güncelleme sayfasında "Preview" QR kodu. Supabase bilgileri `app/.env`'den
+derlemeye girer.
