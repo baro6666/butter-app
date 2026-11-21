@@ -1,4 +1,4 @@
-// Veri kaynağı: Supabase ayarlıysa canlı, değilse cihaz içi örnek veri (geliştirme / tasarım için).
+// Veri kaynağı: varsayılan canlı Supabase (butter); örnek veri yalnız EXPO_PUBLIC_ORNEK=1 ile (geliştirme / tasarım).
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -9,11 +9,15 @@ import { Platform } from 'react-native';
 import { ornekDuyurular, ornekKategoriler, ornekSube, ornekUrunler } from './ornek';
 import type { Duyuru, KartDurumu, Kategori, SonZiyaret, Sube, Urun, Uye } from './tipler';
 
-const URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const ANAHTAR = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+// Varsayılan: canlı butter projesi (yayımlanabilir anahtar gizli değildir; yetkiyi RLS belirler).
+// Örnek veri yalnız açıkça istenirse: EXPO_PUBLIC_ORNEK=1 (derleme ortamında bilgiler eksik kalsa da
+// uygulama sessizce örnek moda düşmesin; Kasım 2026'da önizleme bu yüzden e-posta göndermedi).
+const ORNEK = process.env.EXPO_PUBLIC_ORNEK === '1';
+const URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://amcqfkcerlvjlfzllngy.supabase.co';
+const ANAHTAR = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_-VVKkinkzvf3wtd_HOurpQ_ubjuC7Tl';
 
 export const supabase: SupabaseClient | null =
-  URL && ANAHTAR
+  !ORNEK
     ? createClient(URL, ANAHTAR, {
         auth: {
           storage: Platform.OS === 'web' ? undefined : AsyncStorage,
