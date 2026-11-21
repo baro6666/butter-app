@@ -30,7 +30,13 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#2C5234"
+        }
+      ]
     ],
     "scheme": "butter",
     "backgroundColor": "#FAF7EC",

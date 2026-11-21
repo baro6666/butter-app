@@ -113,4 +113,28 @@ select pg_temp.hata(format('select public.ziyaret_puanla(%s, 5)', (select 1)), '
 select public.hesabimi_sil();
 reset role;
 select pg_temp.esit((select count(*) from public.uyeler where id = '00000000-0000-0000-0000-00000000000b'), 0::bigint, 'hesap silinince üye ve kartı gider');
+
+-- 6) Anlık bildirim alıcıları (izinlere göre)
+reset role;
+update public.uyeler set push_token = 'ExponentPushToken[ornekA]' where id = '00000000-0000-0000-0000-00000000000a';
+insert into public.duyurular (id, tur, baslik, urun_id, bildirim) values
+  ('00000000-0000-0000-0000-0000000000f1', 'firin', 'Kruvasan çıktı', null, true),
+  ('00000000-0000-0000-0000-0000000000f2', 'kampanya', 'Akşam fırsatı', null, true),
+  ('00000000-0000-0000-0000-0000000000f3', 'vitrin', 'Latte vitrinde', '00000000-0000-0000-0000-0000000000e1', true),
+  ('00000000-0000-0000-0000-0000000000f4', 'vitrin', 'Pasta vitrinde', '00000000-0000-0000-0000-0000000000e2', true);
+insert into public.duyurular (tur, baslik, bildirim, yayin_zamani) values ('kampanya', 'Yarınki kampanya', true, now() + interval '1 day');
+select pg_temp.esit((select count(*) from public.bildirim_alicilari('00000000-0000-0000-0000-0000000000f1')), 1::bigint, 'fırın bildirimi izinli üyeye gider');
+select pg_temp.esit((select count(*) from public.bildirim_alicilari('00000000-0000-0000-0000-0000000000f2')), 0::bigint, 'kampanya, İYS izni olmayana gitmez');
+select pg_temp.esit((select count(*) from public.bildirim_alicilari('00000000-0000-0000-0000-0000000000f3')), 1::bigint, 'vitrin bildirimi ürünü favorisinde olana gider');
+select pg_temp.esit((select count(*) from public.bildirim_alicilari('00000000-0000-0000-0000-0000000000f4')), 0::bigint, 'vitrin bildirimi favorisi olmayana gitmez');
+select pg_temp.olarak('00000000-0000-0000-0000-00000000000a');
+update public.uyeler set kampanya_izni = true, kampanya_izni_tarih = now() where id = auth.uid();
+update public.uyeler set bildirim_firin = false where id = auth.uid();
+select pg_temp.hata($$select * from public.bildirim_alicilari('00000000-0000-0000-0000-0000000000f1')$$, 'permission denied');
+select pg_temp.hata($$select * from public.bildirim_sirasi_al()$$, 'permission denied');
+reset role;
+select pg_temp.esit((select count(*) from public.bildirim_alicilari('00000000-0000-0000-0000-0000000000f2')), 1::bigint, 'üye kampanya iznini açınca kampanya gider');
+select pg_temp.esit((select count(*) from public.bildirim_alicilari('00000000-0000-0000-0000-0000000000f1')), 0::bigint, 'üye fırın bildirimini kapatınca gitmez');
+select pg_temp.esit((select count(*) from public.bildirim_sirasi_al()), 4::bigint, 'zamanı gelen 4 duyuru gönderime alınır (yarınki değil)');
+select pg_temp.esit((select count(*) from public.bildirim_sirasi_al()), 0::bigint, 'aynı duyuru ikinci kez gönderilmez');
 \echo TÜM TESTLER GEÇTİ

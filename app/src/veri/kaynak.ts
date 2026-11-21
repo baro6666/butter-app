@@ -44,6 +44,7 @@ export interface Kaynak {
   smsDogrula(telefon: string, kod: string): Promise<boolean>; // true: kayıtlı üye
   uyeOl(b: UyeOlBilgisi): Promise<Uye>;
   bildirimAyari(a: Partial<BildirimAyari>): Promise<void>;
+  pushToken(token: string): Promise<void>;
   cikis(): Promise<void>;
   hesabiSil(): Promise<void>;
 }
@@ -159,7 +160,15 @@ function supabaseKaynak(sb: SupabaseClient): Kaynak {
       const ek = a.kampanya_izni !== undefined ? { kampanya_izni_tarih: new Date().toISOString() } : {};
       hata((await sb.from('uyeler').update({ ...a, ...ek }).eq('id', id)).error);
     },
+    async pushToken(token) {
+      const id = await kim();
+      if (!id) return;
+      hata((await sb.from('uyeler').update({ push_token: token }).eq('id', id)).error);
+    },
     async cikis() {
+      // Çıkışta bu telefona bildirim gitmesin
+      const id = await kim();
+      if (id) await sb.from('uyeler').update({ push_token: null }).eq('id', id);
       await sb.auth.signOut();
     },
     async hesabiSil() {
@@ -202,6 +211,7 @@ function ornekKaynak(): Kaynak {
       return durum.uye;
     },
     bildirimAyari: async (a) => { if (durum.uye) durum.uye = { ...durum.uye, ...a }; },
+    pushToken: async () => {},
     cikis: async () => { durum.uye = null; },
     hesabiSil: async () => { durum.uye = null; },
   };

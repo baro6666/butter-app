@@ -66,7 +66,12 @@ Hukuk metni taslakları: `docs/hukuk/` (avukat kontrolü gerekir). SMS kurulumu:
 
 ## Sonraki adımlar
 
-1. Anlık bildirimler (Expo Push): fırından çıktı, favori vitrinde, kampanya (yalnız izinli üyelere).
-2. Mevsim kartı, doğum günü ikramı otomasyonu, hava durumuna göre öneri.
-3. Kerzz'den ürün/fiyat aktarımı.
-4. Mağaza yayını (EAS Build → TestFlight / Google Play iç test).
+1. Mevsim kartı, doğum günü ikramı otomasyonu, hava durumuna göre öneri.
+2. Kerzz'den ürün/fiyat aktarımı.
+3. Mağaza yayını (EAS Build → TestFlight / Google Play iç test).
+
+## Anlık bildirimler (hazır)
+
+Panelde duyuru "anlık bildirim olarak da gönder" işaretliyse telefona gider. Kime: fırın → fırın bildirimi açık olanlar;
+vitrin → ürünü favorisinde olanlar; kampanya / yeni ürün / etkinlik → yalnız İYS onayı verenler; kahve kartı → herkes.
+Kural `bildirim_alicilari` fonksiyonunda, testli. Android'de Expo Go uzak bildirim desteklemez; gerçek derlemede çalışır.

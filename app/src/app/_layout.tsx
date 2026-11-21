@@ -5,7 +5,13 @@ import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { renk, yazi } from '../tema';
+import { useBildirimYonlendirme } from '../veri/bildirim';
 import { VeriSaglayici } from '../veri/VeriSaglayici';
+
+function BildirimYonlendirici() {
+  useBildirimYonlendirme();
+  return null;
+}
 
 export default function KokDuzen() {
   const [yuklendi] = useFonts({ Jost_400Regular, Jost_500Medium, Jost_500Medium_Italic, Jost_700Bold, Montserrat_700Bold });
@@ -16,6 +22,7 @@ export default function KokDuzen() {
     <SafeAreaProvider>
       <VeriSaglayici>
         <StatusBar style="dark" />
+        <BildirimYonlendirici />
         <Stack
           screenOptions={{
             headerShown: false,

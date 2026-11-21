@@ -23,6 +23,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_-VVKkinkzvf3wtd_HOurpQ_ubjuC7Tl
 
 - `supabase/migrations/20261120090000_baslangic.sql`
 - `supabase/seed.sql` (1 şube, 7 kategori, 7 ürün; fiyatlar yalnız bilinenlerde)
+- `supabase/migrations/20261121090000_bildirim.sql` (21 Kasım 2026)
 
 Canlı denetim: giriş yapmadan menü okunuyor; üyeler, QR üretimi ve gizli anahtar tablosu kapalı.
 Uygulamanın web derlemesi canlı veriyle açıldı (menü Supabase'ten geliyor).
@@ -37,6 +38,8 @@ Güvenlik danışmanındaki uyarılar bilinçli:
 
 - `personel-ekle`: yönetici panelden kasiyer / yönetici ekler (e-posta + geçici şifre; çağıranın yönetici olduğu
   sunucuda denetlenir). Yüklendi.
+- `bildirim-gonder`: zamanı gelen "bildirim" işaretli duyuruları izinli üyelere Expo Push ile gönderir. Her dakika
+  `pg_cron` (iş adı `bildirim-gonder`) ve panel yayından hemen sonra çağırır. Yüklendi.
 - `sms-gonder`: SMS sağlayıcı bilgileri gelince yüklenecek (`docs/sms.md`).
 
 ### İlk yönetici hesabı

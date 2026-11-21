@@ -5,7 +5,16 @@ import { Durum, useYukle } from './ortak';
 
 const TURLER = [['firin', 'Fırından çıktı'], ['vitrin', 'Vitrin'], ['kampanya', 'Kampanya'], ['yeni', 'Yeni ürün'], ['etkinlik', 'Etkinlik'], ['kart', 'Kahve kartı']] as const;
 type Tur = (typeof TURLER)[number][0];
-interface Duyuru { id: string; tur: Tur; baslik: string; metin: string | null; urun_id: string | null; yayin_zamani: string; bitis: string | null; bildirim: boolean }
+// Kime gider (veritabanındaki bildirim_alicilari ile aynı kural)
+const BILDIRIM_KIME: Record<Tur, string> = {
+  firin: 'Bildirim, "Fırından yeni çıktı" bildirimini açık tutan üyelere gider.',
+  vitrin: 'Bildirim, ürünü favorisine eklemiş ve "Favorilerim vitrinde" açık üyelere gider.',
+  kampanya: 'Bildirim yalnız ticari ileti (İYS) onayı veren üyelere gider.',
+  yeni: 'Bildirim yalnız ticari ileti (İYS) onayı veren üyelere gider.',
+  etkinlik: 'Bildirim yalnız ticari ileti (İYS) onayı veren üyelere gider.',
+  kart: 'Bildirim, bildirimlere izin veren tüm üyelere gider.',
+};
+interface Duyuru { id: string; tur: Tur; baslik: string; metin: string | null; urun_id: string | null; yayin_zamani: string; bitis: string | null; bildirim: boolean; bildirim_gonderildi: string | null }
 
 export function Duyurular() {
   const { oturum } = useOturum();
@@ -22,6 +31,7 @@ export function Duyurular() {
   const [urun, setUrun] = useState('');
   const [yayin, setYayin] = useState('');
   const [bitis, setBitis] = useState('');
+  const [bildirim, setBildirim] = useState(true);
   const [mesaj, setMesaj] = useState<{ tur: 'tamam' | 'hata'; metin: string } | null>(null);
 
   const yayinla = async () => {
@@ -29,7 +39,10 @@ export function Duyurular() {
       al(await sb.from('duyurular').insert({
         tur, baslik: baslik.trim(), metin: metin.trim() || null, urun_id: urun || null, olusturan: oturum?.user.id,
         yayin_zamani: yayin ? new Date(yayin).toISOString() : new Date().toISOString(), bitis: bitis ? new Date(bitis).toISOString() : null,
+        bildirim,
       }).select('id'));
+      // Hemen yayınlananın bildirimi beklemeden gitsin (planlılar zamanı gelince her dakikalık görevle gider)
+      if (bildirim && !yayin) sb.functions.invoke('bildirim-gonder', { body: {} }).catch(() => {});
       setBaslik(''); setMetin(''); setUrun(''); setYayin(''); setBitis('');
       setMesaj({ tur: 'tamam', metin: yayin ? 'Duyuru planlandı.' : 'Yayınlandı: uygulamada Duyurular’da görünüyor.' });
       yenile();
@@ -62,7 +75,11 @@ export function Duyurular() {
             <label className="alan ara">Yayın zamanı (boş: hemen)<input type="datetime-local" value={yayin} onChange={(e) => setYayin(e.target.value)} /></label>
             <label className="alan ara">Bitiş (isteğe bağlı)<input type="datetime-local" value={bitis} onChange={(e) => setBitis(e.target.value)} /></label>
           </div>
-          <p className="soluk">Anlık bildirim gönderimi bir sonraki adımda eklenecek; duyuru şimdilik uygulamanın Duyurular sekmesinde görünür.</p>
+          <label className="satir" style={{ fontSize: 15 }}>
+            <input type="checkbox" checked={bildirim} onChange={(e) => setBildirim(e.target.checked)} style={{ minHeight: 0, width: 20, height: 20 }} />
+            Anlık bildirim olarak da gönder
+          </label>
+          <p className="soluk">{BILDIRIM_KIME[tur]}</p>
           {mesaj ? <p className={`mesaj ${mesaj.tur}`} role="status">{mesaj.metin}</p> : null}
           <button className="dugme" disabled={!baslik.trim()} onClick={yayinla}>{yayin ? 'Planla' : 'Şimdi yayınla'}</button>
         </div>
@@ -74,7 +91,7 @@ export function Duyurular() {
             return (
               <div key={d.id} className="satir" style={{ borderTop: '1px solid var(--cizgi)', paddingTop: 10 }}>
                 <span className={`rozet ${durum === 'Yayında' ? 'yesil' : ''}`}>{durum}</span>
-                <div className="ara"><b>{d.baslik}</b><p className="soluk">{TURLER.find((t) => t[0] === d.tur)?.[1]} · {tarihSaat(d.yayin_zamani)}</p></div>
+                <div className="ara"><b>{d.baslik}</b><p className="soluk">{TURLER.find((t) => t[0] === d.tur)?.[1]} · {tarihSaat(d.yayin_zamani)}{d.bildirim ? (d.bildirim_gonderildi ? ' · bildirim gönderildi' : ' · bildirim bekliyor') : ''}</p></div>
                 <button className="dugme tehlike kucuk" onClick={() => kaldir(d)}>Kaldır</button>
               </div>
             );
