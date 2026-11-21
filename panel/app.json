@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "butter panel",
+    "slug": "butter-panel",
+    "owner": "baro6",
+    "web": {
+      "output": "static"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4d243688-018a-43de-953e-7308ade1aa71"
+      }
+    }
+  }
+}
