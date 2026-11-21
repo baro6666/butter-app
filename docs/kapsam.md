@@ -19,8 +19,8 @@ Sipariş ve ödeme, üye tabanı oluştuktan sonra ayrı bir aşama olarak değe
 |---|---|---|
 | Müşteri uygulaması (`app/`, iPhone + Android, Expo) | Müşteri | Bu PR'da iskelet ve ekranlar |
 | Veritabanı ve kurallar (`supabase/`) | Hepsi | Bu PR'da şema, yetkiler ve testler |
-| Kasa ekranı: "Damga ver" (web, telefon/tablet) | Kasiyer | Sonraki adım |
-| Yönetim paneli (web, bilgisayar) | Yönetici | Sonraki adım |
+| Kasa ekranı: "Damga ver" (`panel/`, web, telefon/tablet) | Kasiyer | Hazır, canlıda denendi |
+| Yönetim paneli (`panel/`, web, bilgisayar) | Yönetici | Hazır, canlıda denendi |
 
 ## Müşteri uygulaması
 
@@ -66,8 +66,7 @@ Hukuk metni taslakları: `docs/hukuk/` (avukat kontrolü gerekir). SMS kurulumu:
 
 ## Sonraki adımlar
 
-1. Kasa "Damga ver" ekranı ve yönetim paneli (web).
-2. Anlık bildirimler (Expo Push): fırından çıktı, favori vitrinde, kampanya (yalnız izinli üyelere).
-3. Mevsim kartı, doğum günü ikramı otomasyonu, hava durumuna göre öneri.
-4. Kerzz'den ürün/fiyat aktarımı.
-5. Mağaza yayını (EAS Build → TestFlight / Google Play iç test).
+1. Anlık bildirimler (Expo Push): fırından çıktı, favori vitrinde, kampanya (yalnız izinli üyelere).
+2. Mevsim kartı, doğum günü ikramı otomasyonu, hava durumuna göre öneri.
+3. Kerzz'den ürün/fiyat aktarımı.
+4. Mağaza yayını (EAS Build → TestFlight / Google Play iç test).
