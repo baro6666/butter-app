@@ -40,5 +40,6 @@ cd app
 npx eas-cli@latest update --branch onizleme --environment preview --message "<ne değişti>"
 ```
 
-Telefonda: Expo Go → expo.dev'deki güncelleme sayfasında "Preview" QR kodu. Supabase bilgileri `app/.env`'den
-derlemeye girer.
+Telefonda: Expo Go → expo.dev'deki güncelleme sayfasında "Preview" QR kodu. Dikkat: `--environment preview` ile
+`app/.env` yok sayılır (EAS ortam değişkenleri kullanılır); bu yüzden uygulama canlı Supabase bilgilerini varsayılan
+olarak kodda taşır. Örnek veri yalnız `EXPO_PUBLIC_ORNEK=1` ile.
