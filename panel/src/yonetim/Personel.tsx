@@ -16,9 +16,13 @@ export function Personel() {
   const [mesaj, setMesaj] = useState<{ tur: 'tamam' | 'hata'; metin: string } | null>(null);
 
   const ekle = async () => {
+    // Neden eklenemediğini açıkça söyle (düğme pasif kalıp sessizce beklemesin)
+    const temizEposta = eposta.trim().toLowerCase();
+    if (!ad.trim()) { setMesaj({ tur: 'hata', metin: 'Ad soyad yazın.' }); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(temizEposta)) { setMesaj({ tur: 'hata', metin: 'Geçerli bir e-posta yazın (ör. ad@ornek.com).' }); return; }
     setBekliyor(true); setMesaj(null);
     try {
-      const r = await sb.functions.invoke('personel-ekle', { body: { ad: ad.trim(), eposta: eposta.trim(), rol } });
+      const r = await sb.functions.invoke('personel-ekle', { body: { ad: ad.trim(), eposta: temizEposta, rol } });
       if (r.error) throw new Error((await r.error.context?.json?.().catch(() => null))?.hata ?? r.error.message);
       const { gecici_sifre } = r.data as { gecici_sifre: string };
       setMesaj({ tur: 'tamam', metin: `${ad.trim()} eklendi. Geçici şifre: ${gecici_sifre} — yalnız şimdi gösteriliyor; kişiye kendiniz iletin.` });
@@ -38,18 +42,18 @@ export function Personel() {
     <>
       <h1>Personel</h1>
       <div className="satir" style={{ alignItems: 'flex-start' }}>
-        <div className="kart" style={{ flex: '1 1 340px' }}>
+        <form className="kart" style={{ flex: '1 1 340px' }} onSubmit={(e) => { e.preventDefault(); ekle(); }} noValidate>
           <h2>Personel ekle</h2>
-          <label className="alan">Ad soyad<input value={ad} onChange={(e) => setAd(e.target.value)} /></label>
-          <label className="alan">E-posta (giriş için)<input type="email" value={eposta} onChange={(e) => setEposta(e.target.value)} /></label>
+          <label className="alan">Ad soyad<input autoComplete="off" value={ad} onChange={(e) => setAd(e.target.value)} /></label>
+          <label className="alan">E-posta (giriş için)<input type="email" autoComplete="off" value={eposta} onChange={(e) => setEposta(e.target.value)} /></label>
           <div className="secim" role="group" aria-label="Rol">
-            <button aria-pressed={rol === 'kasiyer'} onClick={() => setRol('kasiyer')}>Kasiyer</button>
-            <button aria-pressed={rol === 'yonetici'} onClick={() => setRol('yonetici')}>Yönetici</button>
+            <button type="button" aria-pressed={rol === 'kasiyer'} onClick={() => setRol('kasiyer')}>Kasiyer</button>
+            <button type="button" aria-pressed={rol === 'yonetici'} onClick={() => setRol('yonetici')}>Yönetici</button>
           </div>
           <p className="soluk">Kasiyer yalnız “Damga ver” ekranını görür. Yönetici tüm paneli görür ve 10 dakika kuralını onaylayabilir.</p>
           {mesaj ? <p className={`mesaj ${mesaj.tur}`} role="status">{mesaj.metin}</p> : null}
-          <button className="dugme" disabled={bekliyor || !ad.trim() || !/\S+@\S+\.\S+/.test(eposta)} onClick={ekle}>{bekliyor ? 'Ekleniyor…' : 'Ekle'}</button>
-        </div>
+          <button type="submit" className="dugme" disabled={bekliyor}>{bekliyor ? 'Ekleniyor…' : 'Ekle'}</button>
+        </form>
         <div className="kart tablo-kutu" style={{ flex: '1 1 460px' }}>
           <Durum hata={hata} yukleniyor={yukleniyor && !veri} />
           <table>
