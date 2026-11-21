@@ -1,6 +1,10 @@
 // Veri kaynağı: Supabase ayarlıysa canlı, değilse cihaz içi örnek veri (geliştirme / tasarım için).
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 import { ornekDuyurular, ornekKategoriler, ornekSube, ornekUrunler } from './ornek';
 import type { Duyuru, KartDurumu, Kategori, SonZiyaret, Sube, Urun, Uye } from './tipler';
@@ -16,6 +20,7 @@ export const supabase: SupabaseClient | null =
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: false,
+          flowType: 'pkce',
         },
       })
     : null;
@@ -23,7 +28,10 @@ export const supabase: SupabaseClient | null =
 export const ornekMod = !supabase;
 
 export interface Menu { kategoriler: Kategori[]; urunler: Urun[]; sube: Sube | null }
-export interface UyeOlBilgisi { ad: string; dogumGunu: string | null; davetKodu: string | null; kampanyaIzni: boolean }
+export interface UyeOlBilgisi { ad: string; dogumGunu: string | null; davetKodu: string | null; kampanyaIzni: boolean; telefon: string | null }
+export interface GirisYontemleri { apple: boolean; google: boolean; eposta: boolean }
+// Apple yalnız ilk girişte adı verir; profil formunu doldurmak için döner
+export interface GirisSonucu { kayitli: boolean; ad?: string | null }
 export type BildirimAyari = Pick<Uye, 'bildirim_firin' | 'bildirim_favori' | 'kampanya_izni'>;
 
 export interface Kaynak {
@@ -40,6 +48,11 @@ export interface Kaynak {
   onSiparisTalebi(urunId: string, not: string | null): Promise<void>;
   // Oturum
   uye(): Promise<Uye | null>;
+  girisYontemleri(): Promise<GirisYontemleri>;
+  epostaGonder(eposta: string): Promise<void>;
+  epostaDogrula(eposta: string, kod: string): Promise<boolean>; // true: kayıtlı üye
+  appleGiris(): Promise<GirisSonucu | null>; // null: kullanıcı vazgeçti
+  googleGiris(): Promise<GirisSonucu | null>;
   smsGonder(telefon: string): Promise<void>;
   smsDogrula(telefon: string, kod: string): Promise<boolean>; // true: kayıtlı üye
   uyeOl(b: UyeOlBilgisi): Promise<Uye>;
@@ -142,6 +155,51 @@ function supabaseKaynak(sb: SupabaseClient): Kaynak {
       hata(r.error);
       return r.data as Uye | null;
     },
+    async girisYontemleri() {
+      try {
+        const r = await fetch(`${URL}/auth/v1/settings`, { headers: { apikey: ANAHTAR! } });
+        const j = (await r.json()) as { external?: Record<string, boolean> };
+        return { apple: !!j.external?.apple && Platform.OS === 'ios', google: !!j.external?.google, eposta: !!j.external?.email };
+      } catch {
+        return { apple: false, google: false, eposta: true };
+      }
+    },
+    async epostaGonder(eposta) {
+      hata((await sb.auth.signInWithOtp({ email: eposta, options: { shouldCreateUser: true } })).error);
+    },
+    async epostaDogrula(eposta, kod) {
+      hata((await sb.auth.verifyOtp({ email: eposta, token: kod, type: 'email' })).error);
+      return !!(await this.uye());
+    },
+    async appleGiris() {
+      const ham = Crypto.randomUUID();
+      const ozet = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, ham);
+      let k: AppleAuthentication.AppleAuthenticationCredential;
+      try {
+        k = await AppleAuthentication.signInAsync({
+          requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME, AppleAuthentication.AppleAuthenticationScope.EMAIL],
+          nonce: ozet,
+        });
+      } catch (e) {
+        if ((e as { code?: string }).code === 'ERR_REQUEST_CANCELED') return null;
+        throw e;
+      }
+      if (!k.identityToken) throw new Error('Apple girişi tamamlanamadı');
+      hata((await sb.auth.signInWithIdToken({ provider: 'apple', token: k.identityToken, nonce: ham })).error);
+      const ad = [k.fullName?.givenName, k.fullName?.familyName].filter(Boolean).join(' ') || null;
+      return { kayitli: !!(await this.uye()), ad };
+    },
+    async googleGiris() {
+      const donus = Linking.createURL('giris');
+      const r = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: donus, skipBrowserRedirect: true } });
+      hata(r.error);
+      const sonuc = await WebBrowser.openAuthSessionAsync(r.data.url!, donus);
+      if (sonuc.type !== 'success') return null;
+      const kod = new globalThis.URL(sonuc.url).searchParams.get('code');
+      if (!kod) throw new Error('Google girişi tamamlanamadı');
+      hata((await sb.auth.exchangeCodeForSession(kod)).error);
+      return { kayitli: !!(await this.uye()) };
+    },
     async smsGonder(telefon) {
       hata((await sb.auth.signInWithOtp({ phone: telefon })).error);
     },
@@ -150,7 +208,7 @@ function supabaseKaynak(sb: SupabaseClient): Kaynak {
       return !!(await this.uye());
     },
     async uyeOl(b) {
-      const r = await sb.rpc('uye_ol', { p_ad: b.ad, p_dogum_gunu: b.dogumGunu, p_davet_kodu: b.davetKodu, p_kampanya_izni: b.kampanyaIzni });
+      const r = await sb.rpc('uye_ol', { p_ad: b.ad, p_dogum_gunu: b.dogumGunu, p_davet_kodu: b.davetKodu, p_kampanya_izni: b.kampanyaIzni, p_telefon: b.telefon });
       hata(r.error);
       return r.data as Uye;
     },
@@ -201,11 +259,16 @@ function ornekKaynak(): Kaynak {
     puanla: async (_h, p) => { durum.puan = p; },
     onSiparisTalebi: () => bekle(undefined),
     uye: () => bekle(durum.uye),
+    girisYontemleri: () => bekle({ apple: Platform.OS === 'ios', google: true, eposta: true }),
+    epostaGonder: () => bekle(undefined),
+    epostaDogrula: async (_e, kod) => { if (kod !== '123456') throw new Error('Kod hatalı (örnek modda 123456)'); return !!durum.uye; },
+    appleGiris: () => bekle({ kayitli: !!durum.uye, ad: null }),
+    googleGiris: () => bekle({ kayitli: !!durum.uye }),
     smsGonder: () => bekle(undefined),
     smsDogrula: async (_t, kod) => { if (kod !== '123456') throw new Error('Kod hatalı (örnek modda 123456)'); return !!durum.uye; },
     uyeOl: async (b) => {
       durum.uye = {
-        id: 'ornek', ad: b.ad, telefon: null, dogum_gunu: b.dogumGunu, davet_kodu: 'ORNEK1',
+        id: 'ornek', ad: b.ad, telefon: b.telefon, dogum_gunu: b.dogumGunu, davet_kodu: 'ORNEK1',
         bildirim_firin: true, bildirim_favori: true, kampanya_izni: b.kampanyaIzni, olusturma: new Date().toISOString(),
       };
       return durum.uye;

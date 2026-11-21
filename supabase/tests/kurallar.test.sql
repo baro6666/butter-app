@@ -137,4 +137,13 @@ select pg_temp.esit((select count(*) from public.bildirim_alicilari('00000000-00
 select pg_temp.esit((select count(*) from public.bildirim_alicilari('00000000-0000-0000-0000-0000000000f1')), 0::bigint, 'üye fırın bildirimini kapatınca gitmez');
 select pg_temp.esit((select count(*) from public.bildirim_sirasi_al()), 4::bigint, 'zamanı gelen 4 duyuru gönderime alınır (yarınki değil)');
 select pg_temp.esit((select count(*) from public.bildirim_sirasi_al()), 0::bigint, 'aynı duyuru ikinci kez gönderilmez');
+
+-- 7) E-postayla giriş: telefon profilden, isteğe bağlı
+reset role;
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-00000000000c', 'c@example.com'), ('00000000-0000-0000-0000-00000000000d', 'd@example.com');
+select pg_temp.olarak('00000000-0000-0000-0000-00000000000c');
+select pg_temp.esit((select row(telefon, eposta)::text from public.uye_ol('Can', null, null, false, '0532 111 22 33')), '(905321112233,c@example.com)', 'e-postayla üye: telefon profilden düzgün kaydedilir');
+select pg_temp.olarak('00000000-0000-0000-0000-00000000000d');
+select pg_temp.hata($$select public.uye_ol('Deniz', null, null, false, '5321112233')$$, 'TELEFON_KAYITLI');
+select pg_temp.esit((select telefon from public.uye_ol('Deniz', null, null, false, '123')), null::text, 'geçersiz telefon boş bırakılır');
 \echo TÜM TESTLER GEÇTİ

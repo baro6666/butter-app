@@ -11,7 +11,8 @@
       "bundleIdentifier": "com.butter.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
@@ -36,7 +37,9 @@
         {
           "color": "#2C5234"
         }
-      ]
+      ],
+      "expo-web-browser",
+      "expo-apple-authentication"
     ],
     "scheme": "butter",
     "backgroundColor": "#FAF7EC",
