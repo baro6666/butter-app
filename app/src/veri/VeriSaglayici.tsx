@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { bildirimKaydet } from './bildirim';
 import { kaynak, supabase, type BildirimAyari, type Menu } from './kaynak';
 import type { Duyuru, KartDurumu, Urun, Uye } from './tipler';
 
@@ -36,6 +37,7 @@ export function VeriSaglayici({ children }: { children: ReactNode }) {
   const oturumYenile = useCallback(async () => {
     const [u, k, f, o] = await Promise.all([kaynak.uye(), kaynak.kart(), kaynak.favoriler(), kaynak.okunanlar()]);
     setUye(u); setKart(k); setFavoriler(new Set(f)); setOkunan(new Set(o));
+    if (u) bildirimKaydet();
   }, []);
 
   const yenile = useCallback(async () => {

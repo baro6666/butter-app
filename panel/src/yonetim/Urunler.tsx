@@ -70,8 +70,9 @@ export function Urunler() {
     try {
       if (d.vitrin_durumu) (d as Record<string, unknown>).vitrin_guncelleme = new Date().toISOString();
       al(await sb.from('urunler').update(d).eq('id', u.id).select('id'));
-      if (d.vitrin_durumu === 'firin' && u.vitrin_durumu !== 'firin' && confirm(`"${u.ad}" için "Fırından yeni çıktı" duyurusu da yayınlansın mı?`)) {
-        al(await sb.from('duyurular').insert({ tur: 'firin', baslik: `${u.ad} fırından yeni çıktı`, metin: 'Sıcakken gelin, vitrinde sizi bekliyor.', urun_id: u.id, olusturan: oturum?.user.id }).select('id'));
+      if (d.vitrin_durumu === 'firin' && u.vitrin_durumu !== 'firin' && confirm(`"${u.ad}" için "Fırından yeni çıktı" duyurusu ve bildirimi gönderilsin mi?`)) {
+        al(await sb.from('duyurular').insert({ tur: 'firin', baslik: `${u.ad} fırından yeni çıktı`, metin: 'Sıcakken gelin, vitrinde sizi bekliyor.', urun_id: u.id, olusturan: oturum?.user.id, bildirim: true }).select('id'));
+        sb.functions.invoke('bildirim-gonder', { body: {} }).catch(() => {});
       }
       setDegisen((s) => { const k = { ...s }; delete k[u.id]; return k; });
       setMesaj({ tur: 'tamam', metin: `${u.ad} kaydedildi.` });
