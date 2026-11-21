@@ -5,7 +5,14 @@ gösterir: bir yöntem açılınca uygulamayı güncellemeye gerek yoktur.
 
 Supabase ayarları (kod 6 hane, 10 dk; site adresi, dönüş adresleri `butter://`, `exp://`) Claude tarafından yapıldı.
 
-## 1. E-posta kodu — Brevo (ücretsiz, günde 300 e-posta)
+## 1. E-posta kodu — Brevo (ücretsiz, günde 300 e-posta) — ÇALIŞIYOR (21.11.2026)
+
+Durum: Brevo SMTP Supabase'e bağlı; Türkçe 6 haneli kod şablonu yüklü; saatlik sınır 100. Gönderen şimdilik
+`t.barandinc@gmail.com` (Brevo'da doğrulanmış). Brevo'da SMTP için IP engeli kapalı (Supabase IP'leri sabit değil).
+Kalan: `buttercoffeebakery.com` alan adının Brevo'da doğrulanması (DNS Cloudflare'de, sosyal medya ekibinin hesabında;
+brevo-code TXT + DKIM kayıtları). Doğrulanınca Supabase'te gönderen adresi `baran@buttercoffeebakery.com` yapılır.
+Alan adının e-postası Hostinger'da (MX, SPF); bu kayıtlara dokunulmaz.
+
 
 Supabase'in kendi e-posta servisi saatte birkaç e-postayla sınırlı ve şablon değiştirilemiyor; Brevo bağlanmalı.
 
