@@ -13,7 +13,11 @@ Kapsam ve kararlar: `docs/kapsam.md`.
   - `src/tema.ts`: marka renkleri (yeşil Pantone 350 C `#2C5234`, krem 726 C `#EDD3B5`), Jost + fiyatlarda Montserrat.
 - `panel/` — kasa ("Damga ver") ve yönetim paneli (Vite + React, HashRouter; https://butter-panel.expo.app, yayın `panel/README.md`).
   Denetim: `cd panel && npm run build`.
-- `supabase/functions/` — `personel-ekle` (yüklü), `sms-gonder` (SMS sağlayıcı bekliyor).
+- `supabase/functions/` — `personel-ekle`, `bildirim-gonder`, `kerzz-aktar` (yüklü), `sms-gonder` (SMS sağlayıcı bekliyor).
+  - `kerzz-aktar`: Kerzz Cloud menüsünü (restoran `QR6BM`, `/menu/with-inheritance`) her gece 05:30 ve panelden alır.
+    Kerzz'in alanları: ad, ad_en, fiyat, foto_url, kategori, sıra. Görünürlük yalnız ilk aktarımda ya da Kerzz'de aktif/pasif
+    değişince değişir; vitrin, açıklama, alerjen, kalori, eşlik, ön sipariş paneldedir. Kerzz bilgisi Supabase secrets
+    (`KERZZ_KULLANICI`, `KERZZ_SIFRE`); Fincosto'nun Kerzz bilgisi kullanılmaz. Gece görevi `gizli_ayar.kerzz_cron` anahtarıyla çağırır.
 - `supabase/migrations/` — şema, RLS ve kahve kartı fonksiyonları. `supabase/seed.sql` başlangıç verisi.
 - `supabase/tests/calistir.sh` — yerel PostgreSQL'de Supabase taklidiyle kural testleri.
 

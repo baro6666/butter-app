@@ -88,7 +88,11 @@ function supabaseKaynak(sb: SupabaseClient): Kaynak {
         sb.from('subeler').select('id, ad, adres, telefon, calisma_saatleri, enlem, boylam').limit(1).maybeSingle(),
       ]);
       hata(k.error); hata(u.error); hata(s.error);
-      return { kategoriler: k.data as Kategori[], urunler: u.data as Urun[], sube: s.data as Sube | null };
+      // Gizli kategorideki ürünler (ör. sos/ekstra eklentileri) menüde gösterilmez
+      const katlar = new Set((k.data ?? []).map((x) => x.id));
+      const urunler = (u.data as Urun[]).filter((x) => katlar.has(x.kategori_id));
+      const dolu = new Set(urunler.map((x) => x.kategori_id));
+      return { kategoriler: (k.data as Kategori[]).filter((x) => dolu.has(x.id)), urunler, sube: s.data as Sube | null };
     },
     async duyurular() {
       const r = await sb.from('duyurular').select('id, tur, baslik, metin, urun_id, yayin_zamani').order('yayin_zamani', { ascending: false }).limit(50);

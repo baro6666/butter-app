@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
@@ -28,7 +29,10 @@ export default function UrunSayfasi() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: renk.kagit }} contentContainerStyle={{ paddingBottom: ic.bottom + 32 }}>
       <View style={{ height: 280 + ic.top, backgroundColor: renk.krem, alignItems: 'center', justifyContent: 'center' }}>
-        <Ikon ad="image" boy={40} renkKodu={renk.soluk} />
+        {urun.foto_url
+          ? <Image source={{ uri: urun.foto_url }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} contentFit="cover" transition={200} cachePolicy="disk"
+              accessibilityLabel={urun.ad} />
+          : <Ikon ad="image" boy={40} renkKodu={renk.soluk} />}
         <Pressable accessibilityRole="button" accessibilityLabel="Geri" onPress={() => (router.canGoBack() ? router.back() : router.replace('/menu'))}
           style={[yuvarlak, { position: 'absolute', left: 16, top: ic.top + 12 }]}>
           <Ikon ad="arrow-left" />

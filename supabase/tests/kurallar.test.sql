@@ -146,4 +146,14 @@ select pg_temp.esit((select row(telefon, eposta)::text from public.uye_ol('Can',
 select pg_temp.olarak('00000000-0000-0000-0000-00000000000d');
 select pg_temp.hata($$select public.uye_ol('Deniz', null, null, false, '5321112233')$$, 'TELEFON_KAYITLI');
 select pg_temp.esit((select telefon from public.uye_ol('Deniz', null, null, false, '123')), null::text, 'geçersiz telefon boş bırakılır');
+
+-- 8) Kerzz aktarımı: kayıtlar ve iç anahtar üyeye kapalı
+reset role;
+insert into public.kerzz_aktarim (durum) values ('tamam');
+select pg_temp.olarak('00000000-0000-0000-0000-00000000000c');
+select pg_temp.esit((select count(*) from public.kerzz_aktarim), 0::bigint, 'üye Kerzz aktarım kayıtlarını göremez');
+select pg_temp.esit((select count(*) from public.gizli_ayar), 0::bigint, 'üye gizli anahtarları göremez');
+select pg_temp.olarak(null);
+select pg_temp.esit((select count(*) from public.kerzz_aktarim), 0::bigint, 'anonim Kerzz aktarım kayıtlarını göremez');
+reset role;
 \echo TÜM TESTLER GEÇTİ
