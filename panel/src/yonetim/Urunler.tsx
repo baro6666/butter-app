@@ -9,6 +9,8 @@ interface Urun {
   vitrin_durumu: 'normal' | 'son' | 'firin' | 'tukendi'; vitrin_notu: string | null; on_siparis: boolean; gorunur: boolean; sira: number;
 }
 interface Kategori { id: string; ad: string }
+interface Aktarim { durum: 'calisiyor' | 'tamam' | 'hata'; baslangic: string; eklenen: number | null; guncellenen: number | null; gizlenen: number | null; hata: string | null }
+const zaman = (t: string) => new Date(t).toLocaleString('tr-TR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
 const VITRIN = [['normal', 'Normal'], ['son', 'Son birkaç'], ['firin', 'Fırından çıktı'], ['tukendi', 'Tükendi']] as const;
 const bosUrun = (kat: string): Partial<Urun> => ({ kategori_id: kat, ad: '', gorunur: true, vitrin_durumu: 'normal', on_siparis: false, sira: 0 });
@@ -22,7 +24,7 @@ function Ayrinti({ u, urunler, onDegis }: { u: Partial<Urun>; urunler: Urun[]; o
   );
   return (
     <div className="satir" style={{ alignItems: 'flex-start' }}>
-      {metin('ad_en', 'İngilizce ad')}
+      {u.kerzz_kodu ? null : metin('ad_en', 'İngilizce ad')}
       {metin('alerjenler', 'Alerjenler')}
       <label className="alan" style={{ flex: '0 1 120px' }}>Kalori (kcal)
         <input type="number" min={0} value={u.kalori ?? ''} onChange={(e) => onDegis({ kalori: e.target.value === '' ? null : Number(e.target.value) })} />
@@ -33,7 +35,7 @@ function Ayrinti({ u, urunler, onDegis }: { u: Partial<Urun>; urunler: Urun[]; o
           {urunler.filter((x) => x.id !== u.id).map((x) => <option key={x.id} value={x.id}>{x.ad}</option>)}
         </select>
       </label>
-      {metin('foto_url', 'Fotoğraf adresi')}
+      {u.kerzz_kodu ? null : metin('foto_url', 'Fotoğraf adresi')}
       {metin('aciklama', 'Açıklama', true)}
       <label className="satir" style={{ fontSize: 14 }}><input type="checkbox" checked={!!u.on_siparis} onChange={(e) => onDegis({ on_siparis: e.target.checked })} style={{ minHeight: 0 }} /> Ön sipariş ürünü (talep bırakılabilir)</label>
       <label className="alan" style={{ flex: '0 1 100px' }}>Sıra
@@ -46,20 +48,35 @@ function Ayrinti({ u, urunler, onDegis }: { u: Partial<Urun>; urunler: Urun[]; o
 export function Urunler() {
   const { oturum } = useOturum();
   const { veri, hata, yukleniyor, yenile } = useYukle(async () => {
-    const [u, k] = await Promise.all([
+    const [u, k, a] = await Promise.all([
       sb.from('urunler').select('*').order('sira').order('ad').then(al),
       sb.from('kategoriler').select('id, ad').order('sira').then(al),
+      sb.from('kerzz_aktarim').select('durum, baslangic, eklenen, guncellenen, gizlenen, hata').order('id', { ascending: false }).limit(1).then(al),
     ]);
-    return { urunler: u as Urun[], kategoriler: k as Kategori[] };
+    return { urunler: u as Urun[], kategoriler: k as Kategori[], son: (a as Aktarim[])[0] ?? null };
   });
   const [degisen, setDegisen] = useState<Record<string, Partial<Urun>>>({});
   const [acik, setAcik] = useState<string | null>(null);
   const [yeni, setYeni] = useState<Partial<Urun> | null>(null);
   const [mesaj, setMesaj] = useState<{ tur: 'tamam' | 'hata'; metin: string } | null>(null);
   const [filtre, setFiltre] = useState('');
+  const [aktariyor, setAktariyor] = useState(false);
 
   if (!veri) return <Durum hata={hata} yukleniyor={yukleniyor} />;
-  const { urunler, kategoriler } = veri;
+  const { urunler, kategoriler, son } = veri;
+
+  const kerzzAktar = async () => {
+    setAktariyor(true); setMesaj(null);
+    try {
+      const { data, error } = await sb.functions.invoke('kerzz-aktar', { body: {} });
+      if (error) {
+        const g = await (error as { context?: Response }).context?.json?.().catch(() => null);
+        throw new Error(g?.hata ?? 'Kerzz aktarımı başarısız.');
+      }
+      setMesaj({ tur: 'tamam', metin: `Kerzz'den alındı: ${data.eklenen} yeni, ${data.guncellenen} güncellendi, ${data.gizlenen} gizlendi.` });
+      yenile();
+    } catch (e) { setMesaj({ tur: 'hata', metin: hataMetni(e) }); } finally { setAktariyor(false); }
+  };
   const katAd = Object.fromEntries(kategoriler.map((k) => [k.id, k.ad]));
   const gor = (u: Urun) => ({ ...u, ...degisen[u.id] });
   const degis = (id: string, d: Partial<Urun>) => setDegisen((s) => ({ ...s, [id]: { ...s[id], ...d } }));
@@ -97,7 +114,13 @@ export function Urunler() {
         <input type="search" placeholder="Ürün ara" aria-label="Ürün ara" value={filtre} onChange={(e) => setFiltre(e.target.value)} />
         <button className="dugme" onClick={() => setYeni(bosUrun(kategoriler[0]?.id ?? ''))}>Yeni ürün</button>
       </div>
-      <p className="soluk">Vitrin durumu uygulamada anında görünür. Fiyatlar ileride Kerzz'den otomatik gelecek; o zamana kadar buradan girilir.</p>
+      <div className="satir">
+        <p className="soluk ara" style={{ margin: 0 }}>
+          Ad, fiyat ve fotoğraf her gece 05:30'da Kerzz'den gelir (Kerzz'de değiştirin). Vitrin, açıklama, alerjen, kalori ve görünürlük buradan yönetilir.
+          {son ? <><br />Son aktarım: {zaman(son.baslangic)} — {son.durum === 'tamam' ? `${son.eklenen ?? 0} yeni, ${son.guncellenen ?? 0} güncel, ${son.gizlenen ?? 0} gizlendi` : son.durum === 'hata' ? `hata: ${son.hata}` : 'sürüyor'}</> : null}
+        </p>
+        <button className="dugme cizgi" onClick={kerzzAktar} disabled={aktariyor}>{aktariyor ? 'Alınıyor…' : "Kerzz'den şimdi güncelle"}</button>
+      </div>
       {mesaj ? <p className={`mesaj ${mesaj.tur}`} role="status">{mesaj.metin}</p> : null}
 
       {yeni ? (
@@ -127,9 +150,15 @@ export function Urunler() {
               return (
                 <Fragment key={u.id}>
                   <tr>
-                    <td style={{ minWidth: 180 }}><b>{u.ad}</b>{u.on_siparis ? <> <span className="rozet">ön sipariş</span></> : null}</td>
+                    <td style={{ minWidth: 200 }}>
+                      <div className="satir" style={{ gap: 10, flexWrap: 'nowrap' }}>
+                        {u.foto_url ? <img src={u.foto_url} alt="" loading="lazy" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 8 }} /> : <span style={{ width: 40, height: 40, borderRadius: 8, background: '#EDD3B5', flex: 'none' }} />}
+                        <span><b>{u.ad}</b>{u.on_siparis ? <> <span className="rozet">ön sipariş</span></> : null}{u.kerzz_kodu ? null : <> <span className="rozet">elle</span></>}</span>
+                      </div>
+                    </td>
                     <td>{katAd[u.kategori_id] ?? u.kategori_id}</td>
-                    <td><input type="number" min={0} step="0.5" style={{ width: 100 }} aria-label={`${u.ad} fiyatı`} value={u.fiyat ?? ''} onChange={(e) => degis(u.id, { fiyat: e.target.value === '' ? null : Number(e.target.value) })} /></td>
+                    <td>{u.kerzz_kodu ? <span title="Kerzz'den gelir">{u.fiyat != null ? Number(u.fiyat).toLocaleString('tr-TR') : '—'}</span>
+                      : <input type="number" min={0} step="0.5" style={{ width: 100 }} aria-label={`${u.ad} fiyatı`} value={u.fiyat ?? ''} onChange={(e) => degis(u.id, { fiyat: e.target.value === '' ? null : Number(e.target.value) })} />}</td>
                     <td>
                       <div className="secim" role="group" aria-label={`${u.ad} vitrin durumu`}>
                         {VITRIN.map(([k, ad]) => <button key={k} aria-pressed={u.vitrin_durumu === k} onClick={() => degis(u.id, { vitrin_durumu: k })}>{ad}</button>)}
