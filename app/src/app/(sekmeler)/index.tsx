@@ -44,9 +44,9 @@ export default function AnaSayfa() {
         ) : (
           <Kutu tur="yesil" style={{ gap: 12 }}>
             <Yazi tur="ust" style={{ color: renk.krem }}>Kahve kartı</Yazi>
-            <Yazi tur="baslik" style={{ color: renk.krem, fontSize: 23 }}>Üye olun, her kahvede damga toplayın</Yazi>
+            <Yazi tur="baslik" style={{ color: renk.krem, fontSize: 23 }}>Aramıza katılın, her kahvede damga toplayın</Yazi>
             <Yazi style={{ color: renk.yesilUstuSoluk }}>Kart dolunca bir kahve bizden. Doğum gününüzde de bir tatlı.</Yazi>
-            <Dugme yazi="Telefonla üye ol" ters onPress={() => router.push('/giris')} />
+            <Dugme yazi="Aramıza katıl" ters onPress={() => router.push('/giris')} />
           </Kutu>
         )}
       </View>
