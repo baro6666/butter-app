@@ -44,8 +44,8 @@ export default function KahveKarti() {
           <Yazi tur="buyukBaslik">Kahve kartı</Yazi>
           <Kutu tur="krem" style={{ gap: 12 }}>
             <Yazi tur="kalin" style={{ fontSize: 19 }}>Her kahve bir damga</Yazi>
-            <Yazi>Kart dolunca bir kahve bizden. Telefon numaranızla bir dakikada üye olun.</Yazi>
-            <Dugme yazi="Üye ol / giriş yap" onPress={() => router.push('/giris')} />
+            <Yazi>Kart dolunca bir kahve bizden. Bir dakikada aramıza katılın; şifre yok.</Yazi>
+            <Dugme yazi="Aramıza katıl" onPress={() => router.push('/giris')} />
           </Kutu>
         </View>
       </Ekran>

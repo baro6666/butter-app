@@ -29,7 +29,7 @@ export default function Hesap() {
           <Kutu tur="krem" style={{ gap: 12 }}>
             <Yazi tur="kalin" style={{ fontSize: 19 }}>Telefon numaranızla giriş yapın</Yazi>
             <Yazi>Kahve kartı, favoriler ve bildirimler için üyelik gerekir. Şifre yok; SMS ile gelen kodu yazmanız yeterli.</Yazi>
-            <Dugme yazi="Üye ol / giriş yap" onPress={() => router.push('/giris')} />
+            <Dugme yazi="Aramıza katıl" onPress={() => router.push('/giris')} />
           </Kutu>
           {ornekMod ? <Yazi tur="kucuk">Örnek veri modu: sunucu bağlı değil.</Yazi> : null}
         </View>

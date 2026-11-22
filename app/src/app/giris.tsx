@@ -104,8 +104,8 @@ export default function Giris() {
 
         {adim === 'secim' ? (
           <>
-            <Yazi tur="buyukBaslik">Üye olun ya da giriş yapın</Yazi>
-            <Yazi>Kahve kartınız, favorileriniz ve bildirimler için. Şifre yok.</Yazi>
+            <Yazi tur="buyukBaslik">Aramıza katılın</Yazi>
+            <Yazi>Kahve kartınız, favorileriniz ve bildirimler için. Şifre yok. Zaten üyeyseniz aynı yolla girin.</Yazi>
             {yontem?.apple && Platform.OS === 'ios' ? (
               <AppleAuthentication.AppleAuthenticationButton
                 buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
